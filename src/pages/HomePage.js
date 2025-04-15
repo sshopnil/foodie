@@ -8,14 +8,24 @@ import {
     ActivityIndicator,
     Image,
     TouchableOpacity,
+    ScrollView,
+    Animated,
+    useWindowDimensions,
+    useAnimatedValue,
 } from 'react-native';
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
+
+
 import SearchInput from '../components/searchInput';
+import CategorySection from './sections/CategorySection';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 
 const { width, height } = Dimensions.get('window');
 const ITEMS_PER_LOAD = 5;
+
+
 
 const HomePage = ({ navigation }) => {
     const [input, setInput] = useState('');
@@ -25,6 +35,8 @@ const HomePage = ({ navigation }) => {
     const [searchResults, setSearchResults] = useState([]);
     const [searchVisibleCount, setSearchVisibleCount] = useState(ITEMS_PER_LOAD);
     const [visibleCounts, setVisibleCounts] = useState({});
+    const [categoryData, setCategoryData] = useState([]);
+    const [isSearchClick, setIsSearchClick] = useState(false);
 
     const handleBtnClick = () => {
         if (!input || input.trim() === '') return;
@@ -43,7 +55,8 @@ const HomePage = ({ navigation }) => {
             .catch((error) => {
                 console.error('API Error:', error);
                 setIsLoading(false);
-            });
+            })
+            .finally(()=>{setIsSearchClick(true);});
     };
 
     const updateSearchSection = (results, count) => {
@@ -114,67 +127,85 @@ const HomePage = ({ navigation }) => {
         fetchData();
     }, []);
 
+    useEffect(() => {
+        axios
+            .get("https://www.themealdb.com/api/json/v1/1/categories.php")
+            .then((response) => {
+                const results = response.data.categories || [];
+                setCategoryData(results);
+            })
+            .catch((error) => {
+                console.error('API Error:', error);
+            });
+    }, [])
     return (
-        <View style={[styles.container, { flexDirection: 'column' }]}>
-            <ImageBackground
-                style={styles.headerBG}
-                source={{ uri: 'https://tinyurl.com/4srt76z9' }}
-                resizeMode="cover"
-            >
-                <View style={styles.overlay}>
-                    <Text style={styles.title}>Welcome to FoodVista!</Text>
-                    <Text style={styles.subtitle}>Enjoy Premium Foods</Text>
-                    <SearchInput input={input} setInput={setInput} handleBtnClick={handleBtnClick} />
-                </View>
-            </ImageBackground>
-
-            {isLoading ? (
-                <ActivityIndicator size="large" color="#FF5722" style={{ marginTop: 20 }} />
+        <SectionList
+        style={styles.container}
+        sections={sectionData}
+        keyExtractor={(item, index) => item?.strMeal + index}
+        ListHeaderComponent={
+            
+            <>
+                <ImageBackground
+                    style={styles.headerBG}
+                    source={{ uri: 'https://tinyurl.com/4srt76z9' }}
+                    resizeMode="cover"
+                >
+                    <View style={styles.overlay}>
+                        <Text style={styles.title}>Welcome to FoodVista!</Text>
+                        <Text style={styles.subtitle}>Enjoy Premium Foods</Text>
+                        <SearchInput input={input} setInput={setInput} handleBtnClick={handleBtnClick} />
+                    </View>
+                </ImageBackground>
+                {!isSearchClick && <View style={styles.catSection}>
+                    <Text style={styles.categoryText}>Our Items</Text>
+                    <CategorySection data={categoryData} />
+                </View>}
+                {isLoading && (
+                    <ActivityIndicator size="large" color="#FF5722" style={{ marginTop: 20 }} />
+                )}
+            </>
+        }
+        renderItem={({ item }) =>
+            item.isPlaceholder ? (
+                <Text style={styles.placeholder}>{item.strMeal}</Text>
             ) : (
-                <SectionList
-                    style={{ flex: 2 }}
-                    sections={sectionData}
-                    keyExtractor={(item, index) => item?.strMeal + index}
-                    renderItem={({ item }) =>
-                        item.isPlaceholder ? (
-                            <Text style={styles.placeholder}>{item.strMeal}</Text>
-                        ) : (
-                            <TouchableOpacity
-                                style={styles.item}
-                                onPress={() => navigation.navigate('ProductDetails', { item })}
-                            >
-                                <Image source={{ uri: item?.strMealThumb }} style={styles.image} />
-                                <Text style={styles.itemText}>{item?.strMeal}</Text>
-                            </TouchableOpacity>
-                        )
-                    }
-                    renderSectionHeader={({ section: { title } }) => (
-                        <Text style={styles.sectionHeader}>{title}</Text>
-                    )}
-                    renderSectionFooter={({ section }) => {
-                        const isSearch = section.title.startsWith('Search results');
-                        const totalCount = isSearch
-                            ? searchResults.length
-                            : originalData.find((cat) => cat.title === section.title)?.data.length || 0;
-                        const visibleCount = isSearch
-                            ? searchVisibleCount
-                            : visibleCounts[section.title] || ITEMS_PER_LOAD;
+                <TouchableOpacity
+                    style={styles.item}
+                    onPress={() => navigation.navigate('ProductDetails', { item })}
+                >
+                    <Image source={{ uri: item?.strMealThumb }} style={styles.image} />
+                    <Text style={styles.itemText}>{item?.strMeal}</Text>
+                </TouchableOpacity>
+            )
+        }
+        renderSectionHeader={({ section: { title } }) => (
+            <Text style={styles.sectionHeader}>{title} Items</Text>
+        )}
+        renderSectionFooter={({ section }) => {
+            const isSearch = section.title.startsWith('Search results');
+            const totalCount = isSearch
+                ? searchResults.length
+                : originalData.find((cat) => cat.title === section.title)?.data.length || 0;
+            const visibleCount = isSearch
+                ? searchVisibleCount
+                : visibleCounts[section.title] || ITEMS_PER_LOAD;
 
-                        if (visibleCount < totalCount) {
-                            return (
-                                <TouchableOpacity
-                                    onPress={() => handleLoadMore(section.title)}
-                                    style={styles.loadMoreBtn}
-                                >
-                                    <Text style={styles.loadMoreText}>Load More</Text>
-                                </TouchableOpacity>
-                            );
-                        }
-                        return null;
-                    }}
-                />
-            )}
-        </View>
+            if (visibleCount < totalCount) {
+                return (
+                    <TouchableOpacity
+                        onPress={() => handleLoadMore(section.title)}
+                        style={styles.loadMoreBtn}
+                    >
+                        <Text style={styles.loadMoreText}>Load More</Text>
+                    </TouchableOpacity>
+                );
+            }
+            return null;
+        }}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        stickySectionHeadersEnabled={false}
+    />
     );
 };
 
@@ -252,4 +283,15 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
     },
+    categoryText: {
+        fontSize: 20,
+        color: '#fff',
+        fontWeight: 'bold',
+        padding: 10,
+        textAlign: 'center'
+    },
+    catSection:{
+        backgroundColor: '#6d6761',
+        paddingVertical: 50
+    }
 });
