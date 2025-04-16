@@ -19,7 +19,7 @@ export default ProductDetails;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 15,
+    padding: 30,
     backgroundColor: '#fff',
   },
   image: {
@@ -53,5 +53,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
     color: '#444',
+    paddingBottom: 40
   },
 });

@@ -8,26 +8,22 @@ import {
     ActivityIndicator,
     Image,
     TouchableOpacity,
-    ScrollView,
-    Animated,
-    useWindowDimensions,
-    useAnimatedValue,
 } from 'react-native';
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 
 
 import SearchInput from '../components/searchInput';
 import CategorySection from './sections/CategorySection';
 import { useEffect, useState } from 'react';
+// import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
-
+import { useNavigation } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
 const ITEMS_PER_LOAD = 5;
 
 
 
-const HomePage = ({ navigation }) => {
+const HomePage = ({ navigation, refreshKey }) => {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [originalData, setOriginalData] = useState([]);
@@ -37,6 +33,8 @@ const HomePage = ({ navigation }) => {
     const [visibleCounts, setVisibleCounts] = useState({});
     const [categoryData, setCategoryData] = useState([]);
     const [isSearchClick, setIsSearchClick] = useState(false);
+    // const navigation = useNavigation();
+
 
     const handleBtnClick = () => {
         if (!input || input.trim() === '') return;
@@ -125,9 +123,10 @@ const HomePage = ({ navigation }) => {
         };
 
         fetchData();
-    }, []);
+    }, [refreshKey]);
 
     useEffect(() => {
+        setIsSearchClick(false);
         axios
             .get("https://www.themealdb.com/api/json/v1/1/categories.php")
             .then((response) => {
@@ -137,7 +136,7 @@ const HomePage = ({ navigation }) => {
             .catch((error) => {
                 console.error('API Error:', error);
             });
-    }, [])
+    }, [refreshKey])
     return (
         <SectionList
         style={styles.container}
