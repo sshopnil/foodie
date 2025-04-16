@@ -8,10 +8,12 @@ import {
     Animated,
     useWindowDimensions,
     useAnimatedValue,
+    Touchable,
+    TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 
-const CategorySection = ({ data }) => {
+const CategorySection = ({ data, handleBtnClick, setCat}) => {
     const scrollX = useAnimatedValue(0);
     const {width: windowWidth} = useWindowDimensions();
     return (
@@ -39,11 +41,11 @@ const CategorySection = ({ data }) => {
                                     style={{ width: windowWidth, height: 250 }}
                                     key={imageIndex}>
                                     <ImageBackground source={{ uri: item.strCategoryThumb }} style={styles.card}>
-                                        <View style={styles.textContainer}>
+                                        <TouchableOpacity style={styles.textContainer} onPress={()=> {setCat(item.strCategory), handleBtnClick()}}>
                                             <Text style={styles.infoText}>
                                                 {item.strCategory}
                                             </Text>
-                                        </View>
+                                        </TouchableOpacity>
                                     </ImageBackground>
                                 </View>
                             );

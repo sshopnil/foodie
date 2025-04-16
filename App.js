@@ -9,7 +9,7 @@ import { useState } from 'react';
 
 import HomePage from './src/pages/HomePage';
 import ProductDetails from './src/pages/productDetails';
-import FavoritePage from './src/pages/FavoritePage';
+import StatPage from './src/pages/StatPage';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -31,7 +31,7 @@ const HomeStack = ({ refreshKey }) => {
 
 const FavoritesScreen = () => (
   <Stack.Navigator>
-    <Stack.Screen name="FavoritePage" component={FavoritePage} />
+    <Stack.Screen name="stats" component={StatPage} />
   </Stack.Navigator>
 );
 
@@ -43,7 +43,7 @@ const TabNavigator = () => {
         tabBarIcon: ({ color, size }) => {
           let iconName;
           if (route.name === 'Home') iconName = 'home';
-          else if (route.name === 'Favorites') iconName = 'favorite';
+          else if (route.name === 'Statstics') iconName = 'query-stats';
           return <MaterialIcons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#FF5722',
@@ -60,7 +60,7 @@ const TabNavigator = () => {
       }}>
           {() => <HomeStack refreshKey={homeKey} />}
       </Tab.Screen>
-      <Tab.Screen name="Favorites" component={FavoritesScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Statstics" component={FavoritesScreen} options={{ headerShown: false }} />
     </Tab.Navigator>
   );
 };

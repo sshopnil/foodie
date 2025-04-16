@@ -23,7 +23,7 @@ const ITEMS_PER_LOAD = 5;
 
 
 
-const HomePage = ({ navigation, refreshKey }) => {
+const HomePage = ({ refreshKey }) => {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [originalData, setOriginalData] = useState([]);
@@ -33,15 +33,16 @@ const HomePage = ({ navigation, refreshKey }) => {
     const [visibleCounts, setVisibleCounts] = useState({});
     const [categoryData, setCategoryData] = useState([]);
     const [isSearchClick, setIsSearchClick] = useState(false);
-    // const navigation = useNavigation();
-
+    const [cat, setCat] = useState('');
+    const navigation = useNavigation();
 
     const handleBtnClick = () => {
-        if (!input || input.trim() === '') return;
+        const query = input && cat === "" ? input : cat;
+        if (!query || query.trim() === '') return;
 
         setIsLoading(true);
         axios
-            .get(`https://www.themealdb.com/api/json/v1/1/search.php?s=${input}`)
+            .get(`https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`)
             .then((response) => {
                 const results = response.data.meals || [];
                 setSearchResults(results);
@@ -54,13 +55,14 @@ const HomePage = ({ navigation, refreshKey }) => {
                 console.error('API Error:', error);
                 setIsLoading(false);
             })
-            .finally(()=>{setIsSearchClick(true);});
+            .finally(()=>{setIsSearchClick(true); setInput(''); setCat('');});
     };
 
     const updateSearchSection = (results, count) => {
         const visibleItems = results.slice(0, count);
+        const str = input && cat === "" ? input : cat;
         const section = {
-            title: `Search results for "${input}"`,
+            title: `Search results for "${str}"`,
             data: visibleItems.length > 0 ? visibleItems : [{ strMeal: 'No results found.', isPlaceholder: true }],
         };
         setSectionData([section]);
@@ -158,7 +160,7 @@ const HomePage = ({ navigation, refreshKey }) => {
                 </ImageBackground>
                 {!isSearchClick && <View style={styles.catSection}>
                     <Text style={styles.categoryText}>Our Items</Text>
-                    <CategorySection data={categoryData} />
+                    <CategorySection data={categoryData} handleBtnClick={handleBtnClick} setCat={setCat}/>
                 </View>}
                 {isLoading && (
                     <ActivityIndicator size="large" color="#FF5722" style={{ marginTop: 20 }} />
