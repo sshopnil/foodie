@@ -31,7 +31,7 @@ const HomeStack = ({ refreshKey }) => {
 
 const FavoritesScreen = () => (
   <Stack.Navigator>
-    <Stack.Screen name="stats" component={StatPage} />
+    <Stack.Screen name="stats" component={StatPage} options={{headerShown: false}}/>
   </Stack.Navigator>
 );
 
