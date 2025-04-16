@@ -78,11 +78,11 @@ const StatPage = () => {
         <ScrollView>
           <View style={styles.graphStyle}>
             <Text style={styles.chartLabel} >Bar Chart</Text>
-            <BarChart data={barData} />
+            <BarChart spacing={10} data={lineData} isAnimated='true' adjustToWidth='true' animateOnDataChange='true'/>
           </View>
           <View style={styles.graphStyle}>
             <Text style={styles.chartLabel}>Line Chart</Text>
-            <LineChart data={lineData} key={lineData.length} isAnimated='true' adjustToWidth='true' animateOnDataChange='true'/>
+            <LineChart spacing={34} data={lineData} key={lineData.length} isAnimated='true' adjustToWidth='true' animateOnDataChange='true'/>
           </View>
 
           <View style={styles.graphStyle}>
